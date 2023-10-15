@@ -151,3 +151,47 @@ BEGIN
 END //
 
 SELECT media_livros_por_editora();
+
+
+-- Função para listar os autores sem livros
+DELIMITER //
+CREATE FUNCTION autores_sem_livros()
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+    DECLARE listautor TEXT DEFAULT '';
+    DECLARE autorid INT;
+    DECLARE autornome VARCHAR(255);
+    DECLARE fim INT DEFAULT FALSE;
+
+    DECLARE Caminhoautor CURSOR FOR
+        SELECT id, CONCAT(primeiro_nome, ' ', ultimo_nome) AS nome
+        FROM Autor;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fim = TRUE;
+
+    OPEN Caminhoautor;
+
+    read_loop: LOOP
+        FETCH Caminhoautor INTO autorid, autornome;
+        IF fim THEN
+            LEAVE read_loop;
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM Livro_Autor
+            WHERE id_autor = autorid
+        ) THEN
+            SET listautor = CONCAT(listautor, ', ', autornome);
+        END IF;
+    END LOOP;
+
+    CLOSE Caminhoautor;
+
+    RETURN listautor;
+END //
+DELIMITER ;
+
+SELECT autores_sem_livros();
+

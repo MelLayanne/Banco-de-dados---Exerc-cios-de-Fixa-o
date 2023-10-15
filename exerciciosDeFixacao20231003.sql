@@ -30,3 +30,40 @@ BEGIN
 END //
 
 SELECT total_livros_por_genero('História');
+
+--Função para listar os livros associados a um autor 
+DELIMITER //
+CREATE FUNCTION listar_livros_por_autor(primeiro_nome VARCHAR(255), ultimo_nome VARCHAR(255)) 
+RETURNS VARCHAR(1000)
+DETERMINISTIC
+BEGIN
+    DECLARE listliv VARCHAR(2000) DEFAULT '';
+    DECLARE tlivro VARCHAR(255);
+    DECLARE fim INT DEFAULT FALSE;
+
+    DECLARE Caminho CURSOR FOR
+        SELECT l.titulo
+        FROM Livro l
+        INNER JOIN Livro_Autor la ON l.id = la.id_livro
+        INNER JOIN Autor a ON la.id_autor = a.id
+        WHERE a.primeiro_nome = primeiro_nome AND a.ultimo_nome = ultimo_nome;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fim = TRUE;
+
+    OPEN Caminho;
+
+    read_loop: LOOP
+        FETCH Caminho INTO tlivro;
+        IF fim THEN
+            LEAVE read_loop;
+        END IF;
+
+        SET listliv = CONCAT(listliv, tlivro, ', ');
+    END LOOP;
+
+    CLOSE Caminho;
+
+    RETURN listliv;
+END //
+
+SELECT listar_livros_por_autor('Pedro', 'Alvares');

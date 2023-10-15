@@ -67,3 +67,42 @@ BEGIN
 END //
 
 SELECT listar_livros_por_autor('Pedro', 'Alvares');
+
+
+
+-- Função para atualizar os resumos dos livros
+DELIMITER //
+CREATE FUNCTION atualizar_resumos() 
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE fim INT DEFAULT FALSE;
+    DECLARE idliv INT;
+    DECLARE resumoat VARCHAR(1000);
+    DECLARE Caminho CURSOR FOR SELECT id, resumo FROM Livro;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fim = TRUE;
+
+    OPEN Caminho;
+
+    update_loop: LOOP
+        FETCH Caminho INTO idliv, resumoat;
+
+        IF fim THEN
+            LEAVE update_loop;
+        END IF;
+
+        UPDATE Livro
+        SET resumo = CONCAT(resumoat, ' Este é um excelente livro!')
+        WHERE id = idliv;
+       
+    END LOOP;
+
+    CLOSE Caminho;
+
+    RETURN 1;
+END //
+
+SELECT atualizar_resumos();
+
+-- Consulta para ver se a função atualizou os resumos
+SELECT id, resumo FROM Livro;

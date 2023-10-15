@@ -106,3 +106,48 @@ SELECT atualizar_resumos();
 
 -- Consulta para ver se a função atualizou os resumos
 SELECT id, resumo FROM Livro;
+
+-- Função para calcular a média de livros por editora
+DELIMITER //
+CREATE FUNCTION media_livros_por_editora() 
+RETURNS DECIMAL(10, 2)
+DETERMINISTIC
+BEGIN
+    DECLARE media DECIMAL(10, 2);
+    DECLARE totalliv INT;
+    DECLARE totaledit INT;
+    DECLARE numedit INT;
+    DECLARE idedit INT;
+    DECLARE fim INT DEFAULT FALSE;
+    DECLARE Caminho_editora CURSOR FOR SELECT id FROM Editora;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET fim = TRUE;
+
+    SET totalliv = 0;
+    SET numedit = 0;
+
+    OPEN Caminho_editora;
+
+    read_loop: LOOP
+        FETCH Caminho_editora INTO idedit;
+        IF fim THEN
+            LEAVE read_loop;
+        END IF;
+
+        SELECT COUNT(*) INTO totaledit FROM Livro WHERE id_editora = idedit;
+
+        SET totalliv = totalliv + totaledit;
+        SET numedit = numedit + 1;
+    END LOOP;
+
+    CLOSE Caminho_editora;
+
+    IF numedit = 0 THEN
+        SET media = 0;
+    ELSE
+        SET media = totalliv / numedit;
+    END IF;
+
+    RETURN media;
+END //
+
+SELECT media_livros_por_editora();

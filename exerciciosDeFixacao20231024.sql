@@ -28,3 +28,22 @@ DELIMITER ;
 
 DELETE FROM Clientes WHERE id = 4;
 SELECT * FROM Auditoria;
+
+DELIMITER //
+CREATE TRIGGER atualiza_clientes
+AFTER UPDATE ON Clientes
+FOR EACH ROW
+BEGIN
+    IF OLD.nome != NEW.nome THEN
+        INSERT INTO Auditoria (mensagem) VALUES (CONCAT('Atualização do cliente de"', OLD.nome, '" para "', NEW.nome, '" em ', NOW()));
+    END IF;
+END;
+//
+DELIMITER ;
+
+
+insert into Clientes values (2,'Joao');
+UPDATE Clientes
+SET nome = 'Melissa'
+WHERE id = 2;
+SELECT * FROM Auditoria;

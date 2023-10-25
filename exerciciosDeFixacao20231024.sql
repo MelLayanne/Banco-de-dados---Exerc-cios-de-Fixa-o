@@ -47,3 +47,22 @@ UPDATE Clientes
 SET nome = 'Melissa'
 WHERE id = 2;
 SELECT * FROM Auditoria;
+
+DELIMITER //
+CREATE TRIGGER nomes_vazios
+BEFORE UPDATE ON Clientes
+FOR EACH ROW
+BEGIN
+    IF NEW.nome IS NULL OR NEW.nome = '' THEN
+        INSERT INTO Auditoria (mensagem) VALUES ('Não pode deixar vazio ou nulo o nome ' + NOW());
+        SET NEW.nome = OLD.nome; 
+    END IF;
+END;
+//
+DELIMITER ;
+
+UPDATE Clientes
+SET nome = ''
+WHERE id = 7; 
+
+SELECT * FROM Auditoria;

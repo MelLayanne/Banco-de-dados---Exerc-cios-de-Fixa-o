@@ -66,3 +66,25 @@ SET nome = ''
 WHERE id = 7; 
 
 SELECT * FROM Auditoria;
+
+DELIMITER //
+CREATE TRIGGER Controle_destoque 
+AFTER INSERT ON Pedidos FOR EACH ROW 
+BEGIN 
+    DECLARE estoque INT;
+    DECLARE produto_nome VARCHAR(255);
+    
+    
+    SELECT Produtos.estoque - NEW.quantidade INTO estoque FROM Produtos WHERE Produtos.id = NEW.produto_id;
+    SELECT Produtos.nome INTO produto_nome FROM Produtos WHERE Produtos.id = NEW.produto_id;
+    
+    IF estoque < 5 THEN
+        INSERT INTO Auditoria(mensagem) VALUES (CONCAT('O estoque do produto "', produto_nome, '" está muito abaixo.'));
+    END IF;
+END;
+//
+DELIMITER ;
+
+INSERT INTO Pedidos (id, quantidade) VALUES (7, 1);
+SELECT * FROM Auditoria;
+
